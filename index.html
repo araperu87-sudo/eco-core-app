@@ -1,160 +1,190 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eco-Core - PWA</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#2e7d32">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="icon" type="image/png" href="logo.png">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
-    
+    <title>Eco-Core Móvil - Monitoreo de Humedad</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background-color: #f4f7f6; color: #333; padding: 20px; }
-        .dashboard-container { max-width: 1000px; margin: 0 auto; }
-        header { text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, #2e7d32, #4caf50); color: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        header h1 { font-size: 2.2rem; font-weight: 700; }
-        .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; }
-        .valor-principal { font-size: 3rem; font-weight: 700; color: #2e7d32; margin: 10px 0; }
-        .estado-badge { display: inline-block; padding: 6px 15px; border-radius: 20px; font-weight: 500; font-size: 0.9rem; }
-        .estado-humedo { background-color: #e3f2fd; color: #1e88e5; }
-        .estado-optimo { background-color: #e8f5e9; color: #2e7d32; }
-        .estado-seco { background-color: #ffebee; color: #e53935; }
-        .grafica-section { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .footer-status { text-align: center; margin-top: 20px; font-size: 0.85rem; color: #888; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .header {
+            background-color: #2e7d32;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .subheader {
+            font-size: 14px;
+            font-weight: normal;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 15px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 600px) {
+            .container { grid-template-columns: 1fr; }
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .card-title {
+            font-size: 16px;
+            color: #666;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .value {
+            font-size: 64px;
+            font-weight: bold;
+            color: #2e7d32;
+            margin: 10px 0;
+        }
+        .badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .alerta-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #555;
+            font-size: 15px;
+            line-height: 1.5;
+            height: 100%;
+        }
+        .gota-icono {
+            color: #29b6f6;
+            font-size: 20px;
+        }
+        .chart-container {
+            grid-column: 1 / -1;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        iframe {
+            width: 100%;
+            height: 260px;
+            border: none;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
 
-<div class="dashboard-container">
-    <header>
-        <h1>Eco-Core Móvil</h1>
-        <p>Monitoreo de Humedad en Tiempo Real</p>
-    </header>
+    <div class="header">
+        Eco-Core Móvil
+        <div class="subheader">Monitoreo de Humedad en Tiempo Real</div>
+    </div>
 
-    <div class="grid-cards">
+    <div class="container">
         <div class="card">
-            <h3>Humedad de Suelo</h3>
-            <div class="valor-principal" id="txtHumedad">--</div>
-            <div id="badgeEstado" class="estado-badge estado-optimo">Sincronizando...</div>
+            <div class="card-title">Humedad de Suelo</div>
+            <div class="value" id="humedad-valor">--</div>
+            <div class="badge" id="humedad-badge">Cargando...</div>
         </div>
+
         <div class="card">
-            <h3>Estado Agronómico</h3>
-            <div id="txtInterpretacion" style="font-size: 1.1rem; font-weight: 500; margin-top: 15px; color: #555;">
-                Cargando datos de la nube...
+            <div class="card-title">Estado Agronómico</div>
+            <div class="alerta-container">
+                <span class="gota-icono">💧</span>
+                <span id="alerta-texto">Conectando con el servidor ThingSpeak...</span>
             </div>
         </div>
+
+        <div class="chart-container">
+            <div class="card-title" style="text-align: left;">Historial de Humedad (%)</div>
+            <iframe src="https://thingspeak.mathworks.com/channels/3385533/charts/1?bgcolor=%23ffffff&color=%232e7d32&dynamic=true&results=15&title=Monitoreo+Continuo&type=line"></iframe>
+        </div>
     </div>
 
-    <div class="grafica-section">
-        <canvas id="miGrafica" style="max-height: 350px;"></canvas>
-    </div>
-
-    <div class="footer-status" id="txtActualizacion">
-        Buscando servidor...
-    </div>
-</div>
-
-<script>
-    const CHANNEL_ID = "3385533"; 
-    const READ_API_KEY = "GZ9282RFU1J1LBSI"; 
-    const urlAPI = `https://api.thingspeak.com/channels/${CHANNEL_ID}/fields/1.json?api_key=${READ_API_KEY}&results=10`;
-
-    let graficoHumedad;
-
-    function inicializarGrafica() {
-        const ctx = document.getElementById('miGrafica').getContext('2d');
-        graficoHumedad = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Humedad',
-                    data: [],
-                    borderColor: '#2e7d32',
-                    backgroundColor: 'rgba(76, 175, 80, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.3
-                }]
-            },
-            options: { responsive: true, scales: { y: { beginAtZero: true, max: 1023 } } }
-        });
-    }
-
-    async function actualizarDashboard() {
-        try {
-            const respuesta = await fetch(urlAPI);
-            const datos = await respuesta.json();
-            const feeds = datos.feeds;
-            if (feeds.length === 0) return;
-            
-            const ultimoRegistro = feeds[feeds.length - 1];
-            const valorActual = parseInt(ultimoRegistro.field1);
-
-            if (isNaN(valorActual)) return;
-
-            document.getElementById('txtHumedad').innerText = valorActual;
-
-            const badge = document.getElementById('badgeEstado');
-            const interpretacion = document.getElementById('txtInterpretacion');
-
-            if (valorActual < 300) { 
-                badge.innerText = "Suelo Muy Húmedo";
-                badge.className = "estado-badge estado-humedo";
-                interpretacion.innerText = "💧 Exceso de agua detectado en los sensores.";
-            } else if (valorActual >= 300 && valorActual <= 700) {
-                badge.innerText = "Humedad Óptima";
-                badge.className = "estado-badge estado-optimo";
-                interpretacion.innerText = "🌿 El sustrato cuenta con condiciones ideales.";
-            } else {
-                badge.innerText = "Suelo Seco / Alerta";
-                badge.className = "estado-badge estado-seco";
-                interpretacion.innerText = "⚠️ Alerta de riego. Nivel crítico de resequedad.";
-            }
-
-            const listaHoras = [];
-            const listaValores = [];
-
-            feeds.forEach(registro => {
-                if(registro.field1 != null) {
-                    const horaLocal = new Date(registro.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                    listaHoras.push(horaLocal);
-                    listaValores.push(parseInt(registro.field1));
+    <script>
+        // Configuración de las llaves públicas de lectura de tu canal de ThingSpeak
+        const CHANNEL_ID = "3385533"; 
+        const READ_API_KEY = "5MOSY2HZLBR6DQTL"; 
+        
+        async function consultarThingSpeak() {
+            try {
+                // Petición a la API de ThingSpeak para traer el último registro del Field 1
+                const url = `https://api.thingspeak.com/channels/${CHANNEL_ID}/fields/1.json?api_key=${READ_API_KEY}&results=1`;
+                const respuesta = await fetch(url);
+                const datos = await respuesta.json();
+                
+                if (datos.feeds && datos.feeds.length > 0) {
+                    const ultimoFeed = datos.feeds[0];
+                    // Convertir el valor de texto a número entero
+                    const porcentaje = parseInt(ultimoFeed.field1);
+                    
+                    if (!isNaN(porcentaje)) {
+                        actualizarInterfaz(porcentaje);
+                    }
                 }
-            });
-
-            graficoHumedad.data.labels = listaHoras;
-            graficoHumedad.data.datasets[0].data = listaValores;
-            graficoHumedad.update();
-
-            document.getElementById('txtActualizacion').innerText = `Actualizado: ${new Date().toLocaleTimeString()}`;
-        } catch (error) {
-            console.error(error);
+            } catch (error) {
+                console.error("Error al leer los datos de ThingSpeak:", error);
+                document.getElementById("alerta-texto").innerText = "Error de red al actualizar los datos.";
+            }
         }
-    }
 
-    window.onload = function() {
-        inicializarGrafica();
-        actualizarDashboard();
-        setInterval(actualizarDashboard, 20000);
-    };
+        function actualizarInterfaz(humedad) {
+            // 1. Mostrar el número crudo del porcentaje en la pantalla grande
+            document.getElementById("humedad-valor").innerText = humedad;
 
-    // REGISTRO DEL SERVICE WORKER (Para permitir la instalación de la App)
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js')
-                .then(reg => console.log('Service Worker instalado con éxito'))
-                .catch(err => console.error('Error al instalar SW', err));
-        });
-    }
-</script>
+            const badge = document.getElementById("humedad-badge");
+            const alerta = document.getElementById("alerta-texto");
+
+            // 2. CORRECCIÓN DE LÓGICA: Rangos ajustados a la escala real de 0% a 100%
+            if (humedad > 75) {
+                // CASO EXCESO: Mayor a 75%
+                badge.innerText = "Suelo Muy Húmedo";
+                badge.style.backgroundColor = "#e1f5fe";
+                badge.style.color = "#0288d1";
+                alerta.innerText = "Exceso de agua detectado en los sensores. Se sugiere pausar el riego.";
+            } 
+            else if (humedad >= 35 && humedad <= 75) {
+                // CASO ÓPTIMO: Entre 35% y 75% (Tu lectura de 46% caerá felizmente aquí)
+                badge.innerText = "Suelo Óptimo";
+                badge.style.backgroundColor = "#e8f5e9";
+                badge.style.color = "#2e7d32";
+                alerta.innerText = "El nivel de humedad es adecuado para el correcto desarrollo del cultivo.";
+            } 
+            else {
+                // CASO SECO: Menor a 35%
+                badge.innerText = "Suelo Seco";
+                badge.style.backgroundColor = "#ffebee";
+                badge.style.color = "#c62828";
+                alerta.innerText = "Alerta: El suelo requiere hidratación. Se sugiere activar el sistema de riego.";
+            }
+        }
+
+        // Consultar inmediatamente al cargar la página
+        consultarThingSpeak();
+
+        // Configurar una actualización automática cada 15 segundos para no saturar la API
+        setInterval(consultarThingSpeak, 15000);
+    </script>
 </body>
 </html>
